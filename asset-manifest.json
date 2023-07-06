@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/appwrite-cloner/static/css/main.073c9b0a.css",
+    "main.js": "/appwrite-cloner/static/js/main.f6b9cdf2.js",
+    "static/js/787.fa3cbfc4.chunk.js": "/appwrite-cloner/static/js/787.fa3cbfc4.chunk.js",
+    "index.html": "/appwrite-cloner/index.html",
+    "main.073c9b0a.css.map": "/appwrite-cloner/static/css/main.073c9b0a.css.map",
+    "main.f6b9cdf2.js.map": "/appwrite-cloner/static/js/main.f6b9cdf2.js.map",
+    "787.fa3cbfc4.chunk.js.map": "/appwrite-cloner/static/js/787.fa3cbfc4.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.073c9b0a.css",
+    "static/js/main.f6b9cdf2.js"
+  ]
+}
