@@ -132,12 +132,14 @@ const CloneForm = () => {
       <Grid container padding={1} spacing={1}>
         <Grid item xs>
           <Typography textAlign="left">
-            This tool help you to clone database on Appwrite:
+            This tool help you to clone database on{" "}
+            <a href="https://appwrite.io/">Appwrite</a>:
             <br />
             1. Create API Key with full access from Appwrite console
             <br />
             2. Enter source info and target info (Feel free to enter API Key
-            because this is open source)
+            because this is{" "}
+            <a href="https://github.com/huy-lv/appwrite-cloner">open source</a>)
             <br />
             3. Click "Fetch"
             <br />
