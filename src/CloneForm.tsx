@@ -132,7 +132,7 @@ const CloneForm = () => {
       <Grid container padding={1} spacing={1}>
         <Grid item xs>
           <Typography textAlign="left">
-            This tool help you to clone database on{" "}
+            + This tool help you to clone database on{" "}
             <a href="https://appwrite.io/">Appwrite</a>:
             <br />
             1. Create API Key with full access from Appwrite console
