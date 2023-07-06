@@ -137,9 +137,7 @@ const CloneForm = () => {
             <br />
             1. Create API Key with full access from Appwrite console
             <br />
-            2. Enter source info and target info (Feel free to enter API Key
-            because this is{" "}
-            <a href="https://github.com/huy-lv/appwrite-cloner">open source</a>)
+            2. Enter source info and target info
             <br />
             3. Click "Fetch"
             <br />
