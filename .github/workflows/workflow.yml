@@ -17,4 +17,5 @@ jobs:
       - run: yarn build
       - run: git config --global user.email "huylv177@gmail.com"
       - run: git config --global user.name "huy-lv"
+      - run: git remote set-url origin https://huy-lv:${{ secrets.GH_PASSWORD }}@github.com/huy-lv/appwrite-cloner.git
       - run: yarn deploy
