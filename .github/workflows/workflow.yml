@@ -16,8 +16,7 @@ jobs:
       - uses: actions/checkout@v1
       - run: git config --global user.email "huylv177@gmail.com"
       - run: git config --global user.name "huy-lv"
-      # - run: git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
-      - run: git config --global credential.helper wincred
+      - run: git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
       - run: yarn
       - run: yarn build
-      - run: yarn deploy
+      - run: npx gh-pages --remote origin
