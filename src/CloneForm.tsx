@@ -6,7 +6,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useState, ChangeEvent, FormEvent, useRef } from "react";
+import { ChangeEvent, FormEvent, useRef, useState } from "react";
+import DatabaseView, { DefaultTree, TreeNode } from "./DatabaseView";
 import HostForm from "./HostForm";
 import {
   SourceInfo,
@@ -18,7 +19,6 @@ import {
   getCollections,
   getDatabases,
 } from "./Service";
-import DatabaseView, { DefaultTree, TreeNode } from "./DatabaseView";
 
 const CloneForm = () => {
   const [databases, setDatabases] = useState<TreeNode[]>([]);
