@@ -1,6 +1,6 @@
-import axios from "axios";
-import { TreeNode } from "./DatabaseView";
+import axios, { AxiosError } from "axios";
 import { isArray } from "lodash";
+import { TreeNode } from "./DatabaseView";
 
 export interface SourceInfo {
   host: string;
@@ -41,6 +41,26 @@ export async function post(
   await wait(0.5);
   return axios({
     method: "POST",
+    url,
+    headers,
+    data,
+  });
+}
+
+export async function patch(
+  url: string,
+  projectId: string,
+  apiKey: string,
+  data: any
+) {
+  const headers = {
+    "X-Appwrite-Project": projectId,
+    "Content-Type": "application/json",
+    "X-Appwrite-Key": apiKey,
+  };
+  await wait(0.5);
+  return axios({
+    method: "PATCH",
     url,
     headers,
     data,
@@ -563,9 +583,16 @@ async function createAttributes({
   collectionId: string;
   databaseId: string;
 }) {
-  for (const att of attributes) {
-    const path = att.type === "double" ? "float" : att.type;
+  for (let att of attributes) {
+    const path = att.format || (att.type === "double" ? "float" : att.type);
+    if (att.relatedCollection) att.relatedCollectionId = att.relatedCollection;
+    if (att.relationType) att.type = att.relationType;
+    if (att.max > 922337203685477600) delete att.max;
+    if (att.default === null) delete att.default;
     try {
+      // Log for debug
+      console.log(att);
+
       await post(
         `${host}/v1/databases/${databaseId}/collections/${collectionId}/attributes/${path}`,
         projectId,
@@ -610,15 +637,62 @@ export async function createDocument({
   projectId: string;
   apiKey: string;
 }) {
-  const {
-    $id,
-    $documentId,
-    $databaseId,
-    $collectionId,
-    $permissions,
-    ...data
-  } = document;
+  let { $id, $databaseId, $collectionId, $permissions, ...data } = document;
+
+  data = removeNotAllowKey(data);
+  function removeNotAllowKey(data: any) {
+    for (let key in data) {
+      if (data[key]) {
+        if (data[key].$id) {
+          let {
+            $databaseId,
+            $collectionId,
+            $permissions,
+            $createdAt,
+            $updatedAt,
+            ...remainData
+          } = data[key];
+          data[key] = remainData;
+          for (let k in data[key]) {
+            if (data[key][k] && data[key][k].$id)
+              data[key][k] = removeNotAllowKey(data[key][k]);
+            if (isArray(data[key][k])) {
+              if (data[key][k][0] && data[key][k][0].$id)
+                data[key][k] = removeNotAllowKey(data[key][k]);
+            }
+          }
+        }
+        if (isArray(data[key])) {
+          if (data[key][0] && data[key][0].$id) {
+            data[key] = data[key].map((i: any) => {
+              let {
+                $databaseId,
+                $collectionId,
+                $permissions,
+                $createdAt,
+                $updatedAt,
+                ...remainData
+              } = i;
+              for (let k in remainData) {
+                if (remainData[k] && remainData[k].$id)
+                  remainData[k] = removeNotAllowKey(remainData[k]);
+                if (isArray(remainData[k])) {
+                  if (remainData[k][0] && remainData[k][0].$id)
+                    remainData[k] = removeNotAllowKey(remainData[k]);
+                }
+              }
+              return remainData;
+            });
+          }
+        }
+      }
+    }
+    return data;
+  }
+
   try {
+    console.log(`Cloning document ${$id} in collection ${$collectionId}`);
+
     const res = await post(
       `${host}/v1/databases/${$databaseId}/collections/${$collectionId}/documents`,
       projectId,
@@ -630,7 +704,59 @@ export async function createDocument({
         data,
         permissions: $permissions,
       }
-    );
+    ).catch(async (e: AxiosError) => {
+      if (e.response?.status === 401) {
+        console.log(
+          "Failed to clone this document. Trying to create relationship document with relation ID instead."
+        );
+
+        for (let key in data) {
+          if (data[key]) {
+            if (data[key].$id) data[key] = data[key].$id;
+            if (isArray(data[key])) {
+              if (data[key][0] && data[key][0].$id)
+                data[key] = data[key].map((i: any) => i.$id);
+            }
+          }
+        }
+
+        const res = await post(
+          `${host}/v1/databases/${$databaseId}/collections/${$collectionId}/documents`,
+          projectId,
+          apiKey,
+          {
+            databaseId: $databaseId,
+            collectionId: $collectionId,
+            documentId: $id,
+            data,
+            permissions: $permissions,
+          }
+        ).catch((e) => ({ data: e }));
+
+        return res.data;
+      } else if (e.response?.status === 409) {
+        console.log(
+          "Failed to clone this document. Trying to modify the document instead."
+        );
+
+        const res = await patch(
+          `${host}/v1/databases/${$databaseId}/collections/${$collectionId}/documents/${$id}`,
+          projectId,
+          apiKey,
+          {
+            databaseId: $databaseId,
+            collectionId: $collectionId,
+            documentId: $id,
+            data,
+            permissions: $permissions,
+          }
+        ).catch((e) => ({ data: e }));
+
+        return res.data;
+      }
+      return { data: e };
+    });
+
     return res.data;
   } catch (e: any) {
     //
@@ -688,6 +814,8 @@ export async function cloneDatabase(
       if (!res2.$id) {
         addLog(`${collection.name} - ${res2.message}`);
       }
+    }
+    for (const collection of database.children.filter((i) => i.checked)) {
       const sourceAtt = await listAttributes({
         ...sourceInfo,
         collectionId: collection.$id,
@@ -699,6 +827,8 @@ export async function cloneDatabase(
         collectionId: collection.$id,
         databaseId: database.$id,
       });
+    }
+    for (const collection of database.children.filter((i) => i.checked)) {
       // get source documents
       const sourceDocs = await listDocuments({
         ...sourceInfo,

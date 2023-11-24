@@ -1,5 +1,5 @@
-import CloneForm from "./CloneForm";
 import "./App.css";
+import CloneForm from "./CloneForm";
 
 function App() {
   return (
