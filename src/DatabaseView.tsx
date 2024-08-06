@@ -1,9 +1,8 @@
-import TreeView from "@mui/lab/TreeView";
-import TreeItem from "@mui/lab/TreeItem";
-import Checkbox from "@mui/material/Checkbox";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Grid } from "@mui/material";
+import Checkbox from "@mui/material/Checkbox";
+import { TreeItem, TreeView } from "@mui/x-tree-view";
 
 export const DefaultTree = [
   {
